@@ -30,7 +30,7 @@ an die Messdaten gefittet, um Sättigung und abnehmende Grenzerträge quantitati
 
 ## 1. Voraussetzungen
 
-- **Hardware:** MacBook Pro M4 Pro (oder anderer Mac mit Apple Silicon)
+- **Hardware:** Apple Silicon (Ab M1)
 - **Python:** 3.9+
 - **Betriebssystem:** macOS (MPS-Backend wird automatisch erkannt)
 
