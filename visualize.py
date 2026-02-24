@@ -105,7 +105,7 @@ def plot_residuals(fit_result: dict, save_path: str = None):
 
     if save_path is None:
         save_path = os.path.join(config.PLOTS_DIR, "residuenplot.png")
-    fig.savefig(save_path)
+    fig.savefig(save_path, bbox_inches='tight')
     print(f"Plot gespeichert: {save_path}")
     plt.close(fig)
 
@@ -161,7 +161,7 @@ def plot_training_curves(save_path: str = None):
 
     if save_path is None:
         save_path = os.path.join(config.PLOTS_DIR, "trainingskurven.png")
-    fig.savefig(save_path)
+    fig.savefig(save_path, bbox_inches='tight')
     print(f"Plot gespeichert: {save_path}")
     plt.close(fig)
 

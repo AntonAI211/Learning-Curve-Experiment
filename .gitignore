@@ -1,9 +1,7 @@
 # Python virtual environment
 venv/
 
-# Results and plots (generated output)
-results/
-plots/
+
 
 # Large data archives
 data/cifar-10-python.tar.gz
