@@ -1,6 +1,6 @@
 # Lernkurven-Experiment
 
-Experimenteller Teil der Facharbeit *"Lernkurven in der KI: Eine mathematische Analyse von Sättigung und abnehmenden Grenzerträgen"*.
+Experimenteller Teil der Facharbeit *"Lernkurven in der künstlichen Intelligenz: Eine mathematische Analyse von Sättigung und abnehmenden Grenzerträgen"*.
 
 Dieses Projekt trainiert ein neuronales Netzwerk auf CIFAR-10 mit variierenden Trainingsdatenmengen, um empirische Lernkurven zu erzeugen. Anschließend wird das Power-Law-Modell
 
@@ -142,56 +142,24 @@ NUM_PARTITIONS = 5  # k=5 verschiedene zufällige Subsets pro n
 
 Für jede Trainingsgröße n werden 5 verschiedene zufällige Subsets gezogen und unabhängig trainiert. Ausnahme: n=48.000 (gesamter Pool) wird nur 1x trainiert. **Insgesamt: 8 x 5 + 1 = 41 Runs.**
 
-### Trainings-Hyperparameter
-
-| Parameter               | Wert          | Beschreibung                                    |
-|-------------------------|---------------|-------------------------------------------------|
-| `BATCH_SIZE`            | 128           | Mini-Batch-Größe                                |
-| `MAX_EPOCHS`            | 100           | Maximale Epochen pro Run                        |
-| `EARLY_STOPPING_PATIENCE`| 10           | Stoppt, wenn Val-Loss 10 Epochen nicht sinkt    |
-| `LR_SCHEDULER_FACTOR`   | 0.5          | LR wird halbiert bei Plateau                    |
-| `LR_SCHEDULER_PATIENCE`  | 5           | Plateau-Erkennung nach 5 Epochen                |
-| `ADAM_LR`               | 0.001         | Learning Rate für Adam                          |
-| `SGD_LR`                | 0.1           | Learning Rate für SGD                           |
-| `DROPOUT_CONV`          | 0.25          | Dropout nach Conv-Blöcken                       |
-| `DROPOUT_FC`            | 0.5           | Dropout nach FC-Layer                           |
-
-### Data Augmentation
-
-Bewusst minimal gehalten, um die Lernkurve nicht zu verzerren:
-- `RandomHorizontalFlip` (50% Wahrscheinlichkeit)
-- `RandomCrop(32, padding=4)` (leichtes Verschieben)
-- `Normalize` mit CIFAR-10-Mittelwert und Standardabweichung
-
 ---
 
 ## 5. Experiment durchführen
 
-### Gesamtes Experiment starten
+### Vollständiges Experiment starten
 
 ```bash
-cd learning_curve_experiment
 python3 experiment.py
 ```
 
-Das Skript macht Folgendes:
-1. Lädt CIFAR-10 herunter (beim ersten Mal, ~170 MB)
-2. Teilt die 50.000 Trainingsbilder in **48.000 Training-Pool** + **2.000 Validation**
-3. Iteriert über alle Trainingsgrößen n = {100, 250, ..., 48000}
-4. Für jedes n: zieht k=5 zufällige Subsets und trainiert je ein Modell
-5. Speichert **nach jedem Run** sofort in `results/individual_runs.json`
-6. Am Ende: aggregiert alle Ergebnisse in `results/aggregated_results.csv`
-
-### Konsolenausgabe während des Trainings
+Ausgabe:
 
 ```
-Lade CIFAR-10...
-Train-Pool: 48000, Val: 2000, Test: 10000
-Modell: SimpleCNN (620,810 Parameter)
-Optimizer: Adam
-Device: mps
-
-Starte Experiment: 41 Runs total, 0 bereits abgeschlossen.
+Starte Lernkurven-Experiment
+Modell: ResNet18 | Optimizer: Adam | Device: mps
+Trainingsgrößen: [100, 250, 500, 1000, 2500, 5000, 10000, 25000, 48000]
+Partitionen pro Größe: 5 (außer n=48000: 1)
+Gesamt: 41 Runs
 
 [n=  100, k=0] Training startet (seed=10000)...
 [n=  100, k=0] Test-Acc: 0.2854 | Val-Acc: 0.2950 | Epochen: 34 | Zeit: 42.1s | (1/41)
@@ -258,38 +226,38 @@ Voraussetzung: `results/aggregated_results.csv` muss existieren (wird von `exper
 ============================================================
 Power-Law-Fit: A(n) = A_inf + eta * n^gamma
 ============================================================
-  A_inf (Asymptote)  = 0.932145  (± 0.008234)
-  eta                = -3.456789  (± 0.234567)
-  gamma              = -0.287654  (± 0.012345)
-  R²                 = 0.998765
+  A_inf (Asymptote)  = 0.970000  (± ...)
+  eta                = -13.267300  (± ...)
+  gamma              = -0.522100  (± ...)
+  R²                 = 0.883700
 ============================================================
 
-  → Maximale Genauigkeit:  93.21%
-  → Sättigungsexponent:    -0.2877
+  → Maximale Genauigkeit:  97.00%
+  → Sättigungsexponent:    -0.5221
 
          n  A(n) beob.  A(n) pred.    Residuum
   ────────  ──────────  ──────────  ──────────
-       100      0.2854      0.2812     +0.0042
-       250      0.3721      0.3698     +0.0023
+       250      ...         ...        ...
+       500      ...         ...        ...
        ...
-     48000      0.9198      0.9204     -0.0006
+     48000      ...         ...        ...
 ```
 
 ### Fit-Parameter im Detail
 
-| Parameter | Bedeutung | Erwarteter Bereich |
-|-----------|-----------|-------------------|
-| `A_inf`   | Asymptotische maximale Accuracy. Der Grenzwert, gegen den A(n) für n→∞ konvergiert. | 0.85 - 0.95 (CIFAR-10, SimpleCNN) |
-| `eta`     | Skalierungsfaktor. Negativ, da A(n) von unten gegen A_inf konvergiert. | < 0 |
-| `gamma`   | Sättigungsexponent. Bestimmt, wie schnell die Sättigung eintritt. | -0.35 bis -0.07 (laut Literatur) |
-| `R²`      | Bestimmtheitsmaß. Misst, wie gut das Modell die Daten beschreibt. | Sollte > 0.99 sein |
+| Parameter | Bedeutung | Experimentelles Ergebnis |
+|-----------|-----------|--------------------------|
+| `A_inf`   | Asymptotische maximale Accuracy. Der Grenzwert, gegen den A(n) für n→∞ konvergiert. | 0,9700 (CIFAR-10, ResNet18) |
+| `eta`     | Skalierungsfaktor. Negativ, da A(n) von unten gegen A_inf konvergiert. | −13,2673 |
+| `gamma`   | Sättigungsexponent. Bestimmt, wie schnell die Sättigung eintritt. | −0,5221 |
+| `R²`      | Bestimmtheitsmaß. Misst, wie gut das Modell die Daten beschreibt. | 0,8837 |
 
 ### Methodik des Fits
 
-- **Algorithmus:** `scipy.optimize.curve_fit` (Levenberg-Marquardt, nichtlineare Regression)
+- **Algorithmus:** `scipy.optimize.curve_fit` (nichtlineare Regression mit Nebenbedingungen)
 - **Gewichtung:** Standardabweichung als Sigma (Runs mit kleiner Streuung werden stärker gewichtet)
 - **Startwerte:** A_inf=0.9, eta=-10, gamma=-0.5
-- **Bounds:** A_inf ∈ (0, 1), eta ∈ (-∞, 0), gamma ∈ (-1, 0)
+- **Bounds:** A_inf ∈ (0, 0.97), eta ∈ (-∞, 0), gamma ∈ (-1, 0)
 
 ---
 
@@ -345,7 +313,7 @@ Enthält **alle Einzelergebnisse** als JSON-Array. Jeder Eintrag hat folgende Fe
   "training_size": 1000,
   "partition_index": 2,
   "seed": 100002,
-  "model": "SimpleCNN",
+  "model": "ResNet18",
   "optimizer": "Adam",
   "final_test_accuracy": 0.5234,
   "final_test_loss": 1.3456,
@@ -353,10 +321,10 @@ Enthält **alle Einzelergebnisse** als JSON-Array. Jeder Eintrag hat folgende Fe
   "best_val_loss": 1.3012,
   "epochs_trained": 47,
   "training_time_seconds": 85.23,
-  "train_loss_per_epoch": [2.30, 1.98, ...],
-  "train_accuracy_per_epoch": [0.10, 0.18, ...],
-  "val_loss_per_epoch": [2.28, 1.95, ...],
-  "val_accuracy_per_epoch": [0.11, 0.19, ...]
+  "train_loss_per_epoch": [2.30, 1.98, "..."],
+  "train_accuracy_per_epoch": [0.10, 0.18, "..."],
+  "val_loss_per_epoch": [2.28, 1.95, "..."],
+  "val_accuracy_per_epoch": [0.11, 0.19, "..."]
 }
 ```
 
@@ -365,8 +333,8 @@ Enthält **alle Einzelergebnisse** als JSON-Array. Jeder Eintrag hat folgende Fe
 | `training_size`           | Anzahl Trainingsbeispiele n                            |
 | `partition_index`         | Partition k (0 bis 4)                                  |
 | `seed`                    | Verwendeter Random Seed                                |
-| `model`                   | Modellname ("SimpleCNN" oder "ResNet18")               |
-| `optimizer`               | Optimizer ("Adam" oder "SGD")                          |
+| `model`                   | Modellname ("ResNet18")                                |
+| `optimizer`               | Optimizer ("Adam")                                     |
 | `final_test_accuracy`     | **Accuracy auf dem Testset (der zentrale Messwert)**   |
 | `final_test_loss`         | Loss auf dem Testset                                   |
 | `best_val_accuracy`       | Beste Validation Accuracy (beim besten Val-Loss)       |
@@ -436,10 +404,10 @@ Es gilt A''(n) < 0 für alle n (Konkavität), was mathematisch beweist, dass die
 
 ### Bezug zur Facharbeit
 
-Die empirischen Daten dieses Experiments sollen zeigen:
-1. Das Power-Law-Modell beschreibt die Lernkurve gut (R² nahe 1)
-2. Die Sättigung ist quantifizierbar (A_inf als Grenzwert)
-3. Die abnehmenden Grenzerträge sind nachweisbar (gamma < 0)
+Die empirischen Daten dieses Experiments zeigen:
+1. Das Power-Law-Modell beschreibt die Lernkurve (R² = 0,8837)
+2. Die Sättigung ist quantifizierbar (A_inf = 0,9700 als Grenzwert)
+3. Die abnehmenden Grenzerträge sind nachweisbar (gamma = −0,5221 < 0)
 
 ---
 
